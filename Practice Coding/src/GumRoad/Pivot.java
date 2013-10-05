@@ -24,6 +24,11 @@ import java.util.List;
 public class Pivot {
 
 	public static int evaluatePivot(List<Integer> numbers) {
+		
+		if(numbers.size() <= 2) {
+			//Assumption: Pivot should partition the elements as distinct left and right sub-list
+			return -1;
+		}
 		int pivotIndex = 1;
 		
 		//Initialize sum of left and right sub array such that pivot = 1
