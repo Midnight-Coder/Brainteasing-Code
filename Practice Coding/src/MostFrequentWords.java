@@ -34,7 +34,8 @@ import java.util.Scanner;
  * 
  * Assumptions: 
  * The text follows the rules of grammar ie. there is a space between each word. 
- * Punctuation is ignored for the sake of simplicity.  
+ * Punctuation is ignored for the sake of simplicity.
+ * Uppercase and lowercase have no distinction as we are evaluating words.  
  */
 
 class WordDetails implements Comparator<WordDetails>{
@@ -91,7 +92,7 @@ public class MostFrequentWords {
 				}
 				c = hugeString.charAt(i);
 			}
-			String wordString = word.toString();
+			String wordString = word.toString().toLowerCase();
 			if(wordFreq.containsKey(wordString)) {
 				freq = wordFreq.get(wordString);
 				freq.incrementFreq();
