@@ -47,6 +47,6 @@ public class MostFrequentWords {
 			}
 			WordFreq.forcePut(word.toString(), freq);
 		}
-		findNFrequent(WordFreq,n);
+		//findNFrequent(WordFreq,n);
 	}
 }
