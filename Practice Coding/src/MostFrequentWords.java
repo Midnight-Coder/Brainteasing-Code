@@ -69,9 +69,9 @@ public class MostFrequentWords {
 	public static void main(String args[]) {	
 		Scanner sc = new Scanner(System.in);
 		System.out.println("Input the string");
-		String hugeString = "ab abcd ab def ab def";//sc.nextLine();
+		String hugeString = sc.nextLine();
 		System.out.println("Input the integer providing number of items to return");
-		int n = 2;//sc.nextInt();
+		int n = sc.nextInt();
 		sc.close();
 		setupFrequency(hugeString,n);
 	}
