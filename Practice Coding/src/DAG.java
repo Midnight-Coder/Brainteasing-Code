@@ -18,9 +18,11 @@ import java.util.List;
  * 			-->	[50,30] 
  */
 /*
- * 	My Approach:
+ * My Approach:
  * Maintain a list of orphans[] : 	Each orphan node is present in the list unless a parent is encountered
- * On node creation	: Traverse the DAG (BFS) to find parent and children O(V) where |V| is the #nodes
+ * On node creation	: Traverse the DAG to find parent and children O(V) where |V| is the #nodes
+ * 
+ * Weight of Subgraph: Iterate through the orphans[] -> find node -> recursively add weight
  */
 class Node {
 	private int id, parentID, weight;
@@ -75,6 +77,8 @@ public class DAG {
 			createNode(roots, 3,2,15);
 			createNode(roots, 1,0,25);
 			createNode(roots, 50,4,3);
+			
+			System.out.println("E2:" + subGraphWeight(roots, 2));
 		}
 	}
 	private static void createNode(List<Node> orphans, int id, int pappaId, int weight) {
@@ -117,6 +121,25 @@ public class DAG {
 			orphans.add(newBorn);
 		}
 		print(orphans);
+	}
+	private static int subGraphWeight(List<Node>orphans, int id){
+		Node subgraph = null;
+		for(Node i:orphans) {
+			subgraph = findNode(i, id);
+			if(subgraph != null) {
+				break;
+			}
+		}
+		if(subgraph == null) {
+			System.err.println("Node doesn't exist in the DAG");
+			return -1;
+		}
+		return sum(subgraph);
+	}
+	private static int sum(Node n) {
+		if(n == null)
+			return 0;
+		return n.getWeight() + sum(n.getPappa());
 	}
 	private static void print(List<Node> orphans) {
 		for(Node i:orphans) {
