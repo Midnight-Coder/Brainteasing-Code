@@ -1,76 +1,59 @@
-
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.Semaphore;
 /*
  * Purpose is to test system clock granularity 
  */
 public class ClockGranularity implements Runnable  {
 
 	private static final int nanoInMilli = 1000000;
+	private static final int conversion = nanoInMilli; //Milli-milli = 1 else nanoMilli
 	private static final int MaxExecutionTimeMsec = 60*1000;
 	//60*1000 milliseconds
-	private static final int delta =  (int) ((0.01f) * nanoInMilli);
+	private static final int delta =  (int) ((0.1) *conversion);
 	//Time between requests (IAT): in milli seconds * conversion factor
-	private static final int ArraySize = (MaxExecutionTimeMsec*(nanoInMilli/delta));
+	private static final long ArraySize = (MaxExecutionTimeMsec/delta*conversion);
 	static int tick = 0;
+	static Queue<Object> requestQueue = new LinkedList<Object>();
 	public static Thread t;
-	static long[] ticksCOunt = new long[ArraySize];
-	
+	static long[] ticksCount = new long[(int)ArraySize];
+	static Semaphore queueSemaphore = new Semaphore(1);
 	@Override
 	public void run() {
-		tick += 1;
+		try {
+			queueSemaphore.acquire();
+			tick++;
+			requestQueue.add(tick);
+			queueSemaphore.release();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 		
 	}
 	public static void main(String args[]) {
 		t = new Thread(new ClockGranularity(),"lamda");
 		long execStartTime = System.currentTimeMillis();
-		long experimentStartTime = System.nanoTime();
+		long experimentStartTime = System.currentTimeMillis();
 		long execDuration, experimentRuntime;
 
 		do {
 			execDuration = System.currentTimeMillis() - execStartTime;
-			experimentRuntime = System.nanoTime() - experimentStartTime;
+			experimentRuntime = System.currentTimeMillis() - experimentStartTime;
 			if(experimentRuntime >= delta) {
-				experimentStartTime = System.nanoTime();
-				ticksCOunt[tick] = execDuration;
+				experimentStartTime = System.currentTimeMillis();
+				if(tick >= ticksCount.length) {
+					System.err.println("ERR:" + tick);
+				}
+				else
+					ticksCount[tick] = execDuration;
 				t.run();
 			}
 		} while (execDuration <= MaxExecutionTimeMsec);
 		
-		for(int i = 0; i<tick; i++) {
-			System.out.println(i + " ticks in " + ticksCOunt[i] + " msec\t");
+		for(int i = 0; i<ticksCount.length; i++) {
+			System.out.println(i + " ticks in " + ticksCount[i] + " msec\t" + "\t" + requestQueue.poll());
 		}
-	}
-	
-	
-	/*
-	 * An approach to use one thread asa 100 ms counter 
-	 * TODO Make it work
-	 */
-	public static void twoThreadedImpl() throws InterruptedException {
-		Thread supervisor = new Thread("100msec supervisor") {
-			public void run(){
-				long experimentStartTime = System.currentTimeMillis();
-				long experimentRuntime = System.currentTimeMillis() - experimentStartTime;
-				experimentRuntime = System.currentTimeMillis() - experimentStartTime;
-				if(experimentRuntime >= delta) {
-					t.run();
-					experimentStartTime = System.currentTimeMillis();
-				}
-			}
-		};
-		long threadStart,start;
-		threadStart = start = System.currentTimeMillis();
-		long execDuration,threadDuration;
-		supervisor.start();
-		do{
-			execDuration = System.currentTimeMillis() - start;
-			threadDuration = System.currentTimeMillis() - threadStart;
-			if(threadDuration >= 100) {
-				System.out.println(tick + "@" + execDuration);
-				if(tick%100 == 0) {
-					System.out.println();
-				}
-				supervisor.run();
-			}
-		} while(execDuration <= MaxExecutionTimeMsec);
+		System.out.println(tick + " tick[]" + ticksCount.length + " queue" + requestQueue.size());
 	}
 }
