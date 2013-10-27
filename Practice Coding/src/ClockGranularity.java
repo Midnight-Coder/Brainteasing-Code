@@ -1,3 +1,6 @@
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.Semaphore;
@@ -7,16 +10,16 @@ import java.util.concurrent.Semaphore;
 public class ClockGranularity implements Runnable  {
 
 	private static final int nanoInMilli = 1000000;
-	private static final int conversion = nanoInMilli; //Milli-milli = 1 else nanoMilli
+	
 	private static final int MaxExecutionTimeMsec = 60*1000;
 	//60*1000 milliseconds
-	private static final int delta =  (int) ((0.1) *conversion);
-	//Time between requests (IAT): in milli seconds * conversion factor
-	private static final long ArraySize = (MaxExecutionTimeMsec/delta*conversion);
+	private static final float delta =  0.1f ; /*Float => u-second calculations*/
+	//Inter-arrival Time(IAT): in milliseconds
+	private static final int ArraySize =(int) ((float)MaxExecutionTimeMsec/delta);
 	static int tick = 0;
 	static Queue<Object> requestQueue = new LinkedList<Object>();
 	public static Thread t;
-	static long[] ticksCount = new long[(int)ArraySize];
+	static long[] ticksCount = new long[ArraySize];
 	static Semaphore queueSemaphore = new Semaphore(1);
 	@Override
 	public void run() {
@@ -50,10 +53,27 @@ public class ClockGranularity implements Runnable  {
 				t.run();
 			}
 		} while (execDuration <= MaxExecutionTimeMsec);
-		
-		for(int i = 0; i<ticksCount.length; i++) {
-			System.out.println(i + " ticks in " + ticksCount[i] + " msec\t" + "\t" + requestQueue.poll());
+		try {
+			output();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		System.out.println(tick + " tick[]" + ticksCount.length + " queue" + requestQueue.size());
+	}
+	private static void output() throws IOException{
+		String lineSeparator = System.lineSeparator();
+		File directory = new File("C:\\Users\\Sagar\\git\\Brainteasing Code\\Practice Coding\\src\\ClockGranularity Test results\\Semaphore and Queue");
+		File file = File.createTempFile(delta + " msec", ".txt",directory);
+		FileWriter writer = new FileWriter(file);
+		writer.append("Index\tTimestamp\tQueue Contents" + lineSeparator);
+		String summary = "tick:" + tick + ", tick[]" + ticksCount.length + ", queue<>" + requestQueue.size();
+		for(int i = 0; i<tick; i++) {
+			String temp = i + " ticks in " + ticksCount[i] + " msec\t" + "\t" + requestQueue.poll();
+			System.out.println(temp);
+			writer.append(temp + lineSeparator);
+		}
+		writer.append(lineSeparator + "Summary: " + lineSeparator);
+		writer.append(summary + lineSeparator);
+		System.out.println(summary);
+		writer.close();
 	}
 }
