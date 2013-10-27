@@ -41,7 +41,7 @@ class TrieNode {
 	}
 }
 public class TrieDictionary {
-
+//TODO: validate word => segregate traversal functionality from creation
 	private static TrieNode root;
 	public static void main(String[] args) {
 		root = new TrieNode((char)0, null, false);
