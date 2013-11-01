@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Scanner;
 
 /*
  * There are n points on a 2D plane, find k points that are closest to origin ( x=0, y=0)

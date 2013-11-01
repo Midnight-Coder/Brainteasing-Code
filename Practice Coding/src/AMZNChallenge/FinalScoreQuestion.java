@@ -71,8 +71,8 @@ public class FinalScoreQuestion {
 		   else {
 			   temp = new ArrayList<Integer>();
 		   }
-			   temp.add(index,(int)score);
-			   idScores.put(studentid, temp);
+		   temp.add(index,(int)score);
+		   idScores.put(studentid, temp);
 	   }
 	   //Evaluate the top 5 scores
 	   for(Map.Entry<Integer, List<Integer>> entry:idScores.entrySet()) { // => O(m) : m = #of students
