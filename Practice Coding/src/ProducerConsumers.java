@@ -16,7 +16,7 @@ import java.util.concurrent.Semaphore;
 public class ProducerConsumers{
 	private static final int MaxExecutionTimeMsec = 60000;
 	//60*1000 milliseconds
-	private static float delta = 0.001f; 
+	private static float delta = 1; 
 	//Inter-arrival Time(IAT): in milliseconds
 	static final int ArraySize =(int) ((float)MaxExecutionTimeMsec/delta);
 	private static final int convertMilliToNano = 1000000;
@@ -37,7 +37,7 @@ public class ProducerConsumers{
 		long experimentStartTime = System.nanoTime();
 		long execDuration, experimentRuntime;
 		
-		int numOfConsumers = 2;
+		int numOfConsumers = 3;
 		//TODO int numOfProducers = 2; 
 		Buffer[] requestQueues = new Buffer[numOfConsumers];
 		
@@ -61,10 +61,15 @@ public class ProducerConsumers{
 		} while (execDuration <= MaxExecutionTimeMsec);
 		for(int i=0; i<numOfConsumers; i++) {
 			consumerThreadArray[i].interrupt();
-			String consumerFile = "Consumer-" + i + delta + " msec@" + getTime();
-			printToFile(consumerFile, consumerThreadArray[i].getValidateConsumerArray());
+			//String consumerFile = "Consumer-" + i + delta + " msec@" + getTime();
+			//printToFile(consumerFile, consumerThreadArray[i].getValidateConsumerArray());
+		}
+		for(int i=0; i<numOfConsumers; i++) {
+			int fake = consumerThreadArray[i].getNumberOfFakeConsumed();
+			System.out.println(i + " " + fake);
 		}
 		delta/=convertMilliToNano;
+		
 		/*try {
 			String producerFile = "Producer-" + delta + " msec @" + getTime();
 			//printToFile(producerFile,requestQueues.getQueue());
@@ -93,37 +98,45 @@ public class ProducerConsumers{
 	}
 }
 class Buffer {
-	static Object syncronizedObject;
+//	static Object syncronizedObject;
 	private Queue<Integer> requestsQueue;
 	Semaphore accessQueue;
 	Buffer() {
 		requestsQueue = new LinkedList<Integer>();
+		requestsQueue.add(-999);
 		accessQueue = new Semaphore(1);
-		syncronizedObject = new Object();
+	//	syncronizedObject = new Object();
 	}
 	public void put(Integer tick) throws InterruptedException {
-		accessQueue.acquire();
+//		accessQueue.acquire();
 		requestsQueue.add(tick);
-		synchronized(syncronizedObject) {
-			syncronizedObject.notify();
-		}
-		accessQueue.release();
+	//	synchronized(syncronizedObject) {
+		//	syncronizedObject.notify();
+	//	}
+		//accessQueue.release();
 	}
 	public int get() throws InterruptedException {
 		int tick;
-		while(requestsQueue.size() == 0) {
-			try {
+		while(!ProducerConsumers.canRead) {
+		
+			/*	try {
 				synchronized (syncronizedObject) {
 					syncronizedObject.wait();
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-			}
+			}*/
 		}
-		accessQueue.acquire();
+		try{
+		//accessQueue.acquire();
 		tick = requestsQueue.poll();
-		accessQueue.release();
+		//accessQueue.release();
 		return tick;
+		}
+		catch (NullPointerException e) {
+			return -998;
+		}
+		
 	}
 	public Queue<Integer> getQueue() {
 		return requestsQueue;
@@ -152,6 +165,15 @@ class Consumer extends Thread{
 	}
 	public Queue<Integer> getValidateConsumerArray() {
 		return validateConsumer;
+	}
+	public int getNumberOfFakeConsumed() {
+		int fake = 0;
+		for(int i:this.validateConsumer){
+			if(i == -998) {
+				fake++;
+			}
+		}
+		return fake;
 	}
 }
 
