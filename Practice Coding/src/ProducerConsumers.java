@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 /*
  * Purpose is to test CPU utilization by threads -> maximize CPU utilization
@@ -13,24 +14,25 @@ import java.util.concurrent.Semaphore;
  * Execute 'x' threads to have  100% CPU utilization (100% on all 4 cores)
  */
 
+
+
+
+
+import com.sun.scenario.effect.impl.prism.PrCropPeer;
+
 public class ProducerConsumers{
 	private static final int MaxExecutionTimeMsec = 60000;
 	//60*1000 milliseconds
-	private static float delta = 1; 
+	private static float delta = 10; 
 	//Inter-arrival Time(IAT): in milliseconds
 	static final int ArraySize =(int) ((float)MaxExecutionTimeMsec/delta);
 	private static final int convertMilliToNano = 1000000;
-	public volatile static boolean canRead = false;
 	
 	private static String getTime() {
 		DateFormat format = new SimpleDateFormat("dd-MMM-yy HH:mm:ss");
 		Calendar cal = Calendar.getInstance();
 		return format.format(cal.getTime());
 	}
-	/*
-	 * Invoke 1 producer vs 1,2,3 consumers
-	 * Write consumer to file
-	 */
 	public static void main(String args[]) throws IOException {
 		ProducerConsumers.delta = delta*convertMilliToNano;
 		long execStartTime = System.currentTimeMillis();
@@ -38,107 +40,94 @@ public class ProducerConsumers{
 		long execDuration, experimentRuntime;
 		
 		int numOfConsumers = 3;
-		//TODO int numOfProducers = 2; 
-		Buffer[] requestQueues = new Buffer[numOfConsumers];
+		int numOfProducers = 1; 
+		Producer producerThreadArray[] = new Producer[numOfProducers];
 		
-		Producer producer = new Producer(requestQueues);
-		producer.setPriority(Thread.MAX_PRIORITY);
-		Consumer consumerThreadArray[] = new Consumer[numOfConsumers];
-		for(int i=0; i<numOfConsumers; i++) {
-			requestQueues[i] = new Buffer();
-			consumerThreadArray[i]= new Consumer(requestQueues[i]);
-		}
-		for(int i=0; i<numOfConsumers; i++) {
-			consumerThreadArray[i].start();
+		for(int j=0;j<numOfProducers;j++) {
+			Buffer[] requestQueues = new Buffer[numOfConsumers];
+			producerThreadArray[j] = new Producer(requestQueues,numOfConsumers);		
+			producerThreadArray[j].setPriority(Thread.MAX_PRIORITY);
 		}
 		do {
 			execDuration = System.currentTimeMillis() - execStartTime;
 			experimentRuntime = System.nanoTime() - experimentStartTime;
 			if(experimentRuntime >= delta) {
 				experimentStartTime = System.nanoTime();
-			producer.run();
+				for(Producer i:producerThreadArray){
+					i.run();
+				}
 			}
 		} while (execDuration <= MaxExecutionTimeMsec);
-		for(int i=0; i<numOfConsumers; i++) {
-			consumerThreadArray[i].interrupt();
-			//String consumerFile = "Consumer-" + i + delta + " msec@" + getTime();
-			//printToFile(consumerFile, consumerThreadArray[i].getValidateConsumerArray());
+		for(Producer i:producerThreadArray) {
+			i.getFakeConsumed();
+			try {
+				i.joinConsumers();
+				i.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
-		for(int i=0; i<numOfConsumers; i++) {
-			int fake = consumerThreadArray[i].getNumberOfFakeConsumed();
-			System.out.println(i + " " + fake);
-		}
-		delta/=convertMilliToNano;
-		
-		/*try {
-			String producerFile = "Producer-" + delta + " msec @" + getTime();
-			//printToFile(producerFile,requestQueues.getQueue());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}*/
+		ProducerConsumers.delta/=convertMilliToNano;
 	}
 	public static void printToFile(String outputFileName,Queue<Integer> requestQueue) throws IOException{
+		
+		outputFileName += " " + delta + " msec@" + getTime();
 		outputFileName = outputFileName.replace(':', '-');
 		String lineSeparator = System.lineSeparator();
-		File directory = new File("C:\\Users\\Sagar\\git\\Brainteasing Code\\Practice Coding\\src\\ClockGranularity Test results\\Semaphore and Queue\\");
+		File directory = new File("C:\\Users\\Sagar\\git\\Brainteasing Code\\Practice Coding\\src\\ClockGranularity Test results\\Semaphore and Queue\\concurrentlinkedq\\");
 		File file = File.createTempFile(outputFileName, ".txt",directory);
 		FileWriter writer = new FileWriter(file);
 		writer.append("Index \tQueue Contents" + lineSeparator);
 		int size = requestQueue.size();
-		String summary = "queue<>" + size;
+		String summary = outputFileName + ": queue size:" + size + " last element: ";
+		String temp="";
 		for(int i = 0; i<size; i++) {
-			String temp = i + " ticks  \t" + requestQueue.poll();
-			System.out.println(temp);
+			temp = i + " ticks  \t" + requestQueue.poll();
+			//System.out.println(temp);
 			writer.append(temp + lineSeparator);
 		}
+		summary += temp;
 		writer.append(lineSeparator + "Summary: " + lineSeparator);
 		writer.append(summary + lineSeparator);
-		System.out.println(outputFileName + " " + summary);
+		System.out.println(summary);
 		writer.close();
 	}
 }
 class Buffer {
-//	static Object syncronizedObject;
+	public volatile int canRead;
+	//static Object syncronizedObject;
 	private Queue<Integer> requestsQueue;
-	Semaphore accessQueue;
+	public static int DUMMY = -999;
 	Buffer() {
 		requestsQueue = new LinkedList<Integer>();
-		requestsQueue.add(-999);
-		accessQueue = new Semaphore(1);
-	//	syncronizedObject = new Object();
+		requestsQueue.add(DUMMY);
+		//syncronizedObject = new Object();
+		this.canRead = 1;
 	}
 	public void put(Integer tick) throws InterruptedException {
-//		accessQueue.acquire();
 		requestsQueue.add(tick);
-	//	synchronized(syncronizedObject) {
-		//	syncronizedObject.notify();
-	//	}
-		//accessQueue.release();
+		canRead++;
+		/*synchronized(syncronizedObject) {
+			syncronizedObject.notify();
+		}*/
 	}
 	public int get() throws InterruptedException {
-		int tick;
-		while(!ProducerConsumers.canRead) {
-		
-			/*	try {
-				synchronized (syncronizedObject) {
-					syncronizedObject.wait();
-				}
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		int tick = DUMMY;
+		while(this.canRead == 0) {
+			/*synchronized (syncronizedObject) {
+				syncronizedObject.wait();
 			}*/
 		}
 		try{
-		//accessQueue.acquire();
-		tick = requestsQueue.poll();
-		//accessQueue.release();
+			tick = requestsQueue.poll();
+			this.canRead--;
+			
+		}catch (NullPointerException e) {
+			e.printStackTrace();
+		}
 		return tick;
-		}
-		catch (NullPointerException e) {
-			return -998;
-		}
-		
 	}
-	public Queue<Integer> getQueue() {
+	private Queue<Integer> getQueue() {
 		return requestsQueue;
 	}
 }
@@ -146,30 +135,31 @@ class Buffer {
 class Consumer extends Thread{
 	private Buffer bufferQueue;
 	private Queue<Integer> validateConsumer;
-	Consumer(Buffer requestQueue) {
+	Consumer(Buffer requestQueue, String name) {
+		this.setName(name);
 		bufferQueue = requestQueue;
 		validateConsumer = new LinkedList<Integer>();
 	}
 	public void run() {
 		while(true) {
 			int i;
-			if(ProducerConsumers.canRead) {
+			//if(ProducerConsumers.canRead > 0) {
 				try {
 					i = bufferQueue.get();
 					validateConsumer.add(i);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-			}
+			//}
 		}
 	}
-	public Queue<Integer> getValidateConsumerArray() {
+	Queue<Integer> getValidateConsumerArray() {
 		return validateConsumer;
 	}
-	public int getNumberOfFakeConsumed() {
+	int getNumberOfFakeConsumed() {
 		int fake = 0;
 		for(int i:this.validateConsumer){
-			if(i == -998) {
+			if(i == Buffer.DUMMY) {
 				fake++;
 			}
 		}
@@ -180,13 +170,36 @@ class Consumer extends Thread{
 class Producer extends Thread{
 	public int tick = 0;
 	private Buffer[] bufferQueue;
-	Producer(Buffer[] requestQueue) {
+	private Consumer consumerThreadArray[];
+	Producer(Buffer[] requestQueue, int numOfConsumers) {
+		this.setName("Producer " + this.getName());
 		bufferQueue = requestQueue;	
+		/*Initialize consumers for each producerTdread*/
+		 consumerThreadArray = new Consumer[numOfConsumers];
+		for(int i=0; i<numOfConsumers; i++) {
+			bufferQueue[i] = new Buffer();
+			consumerThreadArray[i]= new Consumer(bufferQueue[i], "Consumer " + i);
+		}
+		for(Consumer i:consumerThreadArray) {
+			i.start();
+		}
+	}
+	public void joinConsumers() throws InterruptedException {
+		for(Consumer i:consumerThreadArray) {
+			i.join();			
+		}
+	}
+	public void getFakeConsumed() throws IOException{
+		for(Consumer i:consumerThreadArray) {
+			int fake = i.getNumberOfFakeConsumed()-1;
+			System.out.println("Fake consumed" + this.getName() + "->" + i.getName() + " " + fake);
+			String consumerFile = i.getName();
+			ProducerConsumers.printToFile(consumerFile, i.getValidateConsumerArray());
+		}
 	}
 	public void run() {
 		try {
 				bufferQueue[tick%bufferQueue.length].put(tick++);
-				ProducerConsumers.canRead = true;
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
