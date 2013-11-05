@@ -6,26 +6,19 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Semaphore;
 /*
  * Purpose is to test CPU utilization by threads -> maximize CPU utilization
  * The machine is a quad core processor. The aim of the experiment is:
  * Execute 'x' threads to have  100% CPU utilization (100% on all 4 cores)
  */
 
-
-
-
-
-import com.sun.scenario.effect.impl.prism.PrCropPeer;
-
 public class ProducerConsumers{
 	private static final int MaxExecutionTimeMsec = 60000;
 	//60*1000 milliseconds
-	private static float delta = 10; 
+	private static float delta = 0.01f; 
 	//Inter-arrival Time(IAT): in milliseconds
 	static final int ArraySize =(int) ((float)MaxExecutionTimeMsec/delta);
+	public static int batchSize = 1000;
 	private static final int convertMilliToNano = 1000000;
 	
 	private static String getTime() {
@@ -58,6 +51,7 @@ public class ProducerConsumers{
 				}
 			}
 		} while (execDuration <= MaxExecutionTimeMsec);
+		ProducerConsumers.delta = delta/convertMilliToNano;
 		for(Producer i:producerThreadArray) {
 			i.getFakeConsumed();
 			try {
@@ -67,8 +61,9 @@ public class ProducerConsumers{
 				e.printStackTrace();
 			}
 		}
-		ProducerConsumers.delta/=convertMilliToNano;
 	}
+	
+	
 	public static void printToFile(String outputFileName,Queue<Integer> requestQueue) throws IOException{
 		
 		outputFileName += " " + delta + " msec@" + getTime();
@@ -121,13 +116,13 @@ class Buffer {
 		try{
 			tick = requestsQueue.poll();
 			this.canRead--;
-			
 		}catch (NullPointerException e) {
+			//TODO store e in an array and print later. Insert dummy instead
 			e.printStackTrace();
 		}
 		return tick;
 	}
-	private Queue<Integer> getQueue() {
+	public Queue<Integer> getQueue() {
 		return requestsQueue;
 	}
 }
@@ -190,11 +185,14 @@ class Producer extends Thread{
 		}
 	}
 	public void getFakeConsumed() throws IOException{
+		int j = 0;
 		for(Consumer i:consumerThreadArray) {
 			int fake = i.getNumberOfFakeConsumed()-1;
 			System.out.println("Fake consumed" + this.getName() + "->" + i.getName() + " " + fake);
 			String consumerFile = i.getName();
 			ProducerConsumers.printToFile(consumerFile, i.getValidateConsumerArray());
+			ProducerConsumers.printToFile(this.getName(), bufferQueue[j].getQueue());
+			j++;
 		}
 	}
 	public void run() {
