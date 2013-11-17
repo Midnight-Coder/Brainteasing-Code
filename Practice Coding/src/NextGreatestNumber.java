@@ -8,7 +8,7 @@ import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
  * eg. 4125 -> 4152 -> 4215 -> 4251...
  */
 public class NextGreatestNumber {
-
+//TODO optimize and test more
 	/*
 	 * Approach: 
 	 * Check if desc. sorteed digits? -yes return the same number
