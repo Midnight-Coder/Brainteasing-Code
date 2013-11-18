@@ -22,9 +22,13 @@ public class NextGreatestNumber {
 		number = sc.next().trim();
 		//number = "43529";
 		while(number!=null) {
-			sc.next();
 			number = findSmallestIncrement(number);
 			System.out.println(number);
+			System.out.println("Press N to exit. Anything else to continue");
+			String temp = sc.next();
+			if(temp.equalsIgnoreCase("N")) {
+				break;
+			}
 		}
 		sc.close();
 	}
