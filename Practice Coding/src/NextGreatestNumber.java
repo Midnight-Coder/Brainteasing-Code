@@ -16,54 +16,75 @@ public class NextGreatestNumber {
 	 *		1. If no digit found, repeat with i-- 
 	 *		2. if found swap i,j and asc sort on all digits on right of j (j+1 to string.length)
 	 *
-	 *Assumptions: Whole numbers. No duplicates
+	 *Assumptions: Whole numbers only (no fractions or negatives) 
 	 */
 	public static void main(String aargs[]){
 		String number;
 		Scanner sc = new Scanner(System.in);
-		/*System.out.println("ENTER number");
-		number = sc.next().trim();*/
-//		sc.close();
-		number = "43529";
+		System.out.println("ENTER number");
+		number = sc.next().trim();
+		//number = "43529";
 		while(number!=null) {
-			//System.out.println(number);
+			sc.next();
 			number = findSmallestIncrement(number);
+			System.out.println(number);
 		}
+		sc.close();
 	}
 	private static String findSmallestIncrement(String number) {
+		if(!inputSanityCheck(number)) {
+			return null;
+		}
+		
 		int length = number.length();
 		char[] numberArray = number.toCharArray();
 		System.out.println("Processing:" + number);
-		if(isGreatest(numberArray)) {
+		if(isGreatest(numberArray)) {	//Time complexity: O(n)
 			System.out.println("Not possible to generate a bigger number with these digits:" + number);
 			return null;
 		}
-		//2 loops i,j  1 swap,1 move if no swap
-		for(int i=length-1; i>=0; i--) {
-			char currentDigit = numberArray[i];
-			boolean breakOuter = false;
-			for(int j=i-1; j>=0; j--){
-				if(numberArray[j]<currentDigit){
-					swap(i,j,numberArray);
-					ascendingSort(j+1,numberArray);
-					System.out.println(numberArray);
+		/*	Have two pointers: windowUpperBound, windowLowerBound
+		 *  Initialize the lower bound to length-1 index always
+		 *  Check for a possibility of swapping numbers within the window 
+		 *  If not possible then increase the window size iteratively (recursion avoided) => Time complexity: O(n2) 
+		 *  After swapping, sort the elements on the right of the windowUpperBound in ascending order => Time complexity: O(nlogn)
+		 *  Approach is upper bounded to O(n3logn)
+		 */
+		for(int windowUpperBound=length-2; windowUpperBound>=0; windowUpperBound--) {
+			char currentDigit = numberArray[windowUpperBound];
+			for(int windowLowerBound=length-1; windowLowerBound > windowUpperBound; windowLowerBound--){
+				if(numberArray[windowLowerBound]>currentDigit){
+					swap(windowUpperBound,windowLowerBound,numberArray);
+					ascendingSort(windowUpperBound+1,numberArray);
 					number = new String(numberArray);
-					breakOuter = true;
-					break;
+					return number;
 				}
-			}
-			if(breakOuter) {
-				breakOuter = false;
-				break;
 			}
 		}
 		return number;
+	}
+	private static boolean inputSanityCheck(String number) {
+		String featureNotSupportedErrorMessage = "This version of the program supports only Natural numbers, ie. integers that are >= 1";
+		try {
+			Integer i = Integer.parseInt(number);
+			if(i<=0) {
+				System.err.println(featureNotSupportedErrorMessage);
+				return false;
+			}
+		} catch(NumberFormatException ex) { 
+			System.err.println(featureNotSupportedErrorMessage);
+			return false;
+		}
+		return true;
 	}
 	/*
 	 * sort chars from index j to numberArray.length in ascending order
 	 */
 	private static void ascendingSort(int startIndex, char[] numberArray) {
 		// TODO optimize!
+		if(startIndex == numberArray.length-1) {
+			return;
+		}
 		int j = startIndex;
 		char[] subArray = new char[numberArray.length - j];
 		for(int i=0; i<subArray.length; i++) {
