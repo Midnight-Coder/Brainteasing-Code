@@ -18,8 +18,6 @@ var _ = require('underscore');
       "Chuck eats pizza, burgers"];
     
     var foodMatches = yourSolution(peopleAndPreferences, foodsAvailable);
-    console.log(foodMatches);
-    console.log(expectedSolution);
     if (isListEqual(expectedSolution, foodMatches)){
       console.log("Everything works!");
     } else {
