@@ -1,2 +1,7 @@
 # nodejs npm modules
 /tickleTheGrey/node_modules
+#eclipse generated files
+.metadata/
+tickleTheGrey/.classpath
+tickleTheGrey/.gitignore
+tickleTheGrey/.project
