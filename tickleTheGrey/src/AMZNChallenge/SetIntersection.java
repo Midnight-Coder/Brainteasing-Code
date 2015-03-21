@@ -17,7 +17,7 @@ public class SetIntersection {
 	public static List<Integer> intersection1 (List<Integer> a, List<Integer> b) {
 		Set<Integer> s1 = new HashSet<Integer>(a);
 		s1.retainAll(b);
-		List<Integer> answer = new ArrayList<>(s1);
+		List<Integer> answer = new ArrayList<Integer>(s1);
 		return answer;
 	}
 	public static List<Integer> intersection2 (List<Integer> a, List<Integer> b) {
@@ -29,7 +29,7 @@ public class SetIntersection {
 				answer.add(i);
 			}
 		}
-		return new ArrayList<>(answer);
+		return new ArrayList<Integer>(answer);
 	}
 	public static void main(String args[]){
 		Integer a[] = {1,2,3,4,5};
