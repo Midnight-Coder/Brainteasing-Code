@@ -1,0 +1,39 @@
+<html>
+<head>
+    <title>Catch 'em</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" async="" src="index.js"></script>
+</head>
+<body>
+    <h2>The thief of Persia has stolen the princess' jewels. Help the princess recover it!</h2>
+    <h2>Instructions</h2>
+    <ul class='story'>
+        <li>
+            The prince of persia has tracked down the thief and found the jewels to be hidden in a magical box
+        </li>
+        <li>
+            The box is jinxed to kill anyone who tries to open it
+        </li>
+        <li>
+            And it flies away from anyone who will try to catch it
+        </li>
+        <li>The prince is on a quest to find an antidode to the poison. Meanwhilethe princess has personally requested you to keep an eye on the box</li>
+        <li>Before you say yes to the beautiful princess, beware, the box WILL try to elude you. It is not an easy task</li>
+    </ul>
+    <h4> Do you accept the challenge?</h4>
+    <!-- <div class='canvas-container'> -->
+        <canvas id="canvas" width="300" height="300"></canvas>
+        <h2 id="over"></h2>
+    <!-- </div> -->
+
+    <div id="light" class="white_content">
+        <span>Game Over</span>
+        <button class='btn' onclick=startGame()>Try Again</button>
+    </div>
+    <div id="fade" class="black_overlay"></div>
+
+
+</body>
+<footer></footer>
+</html>
