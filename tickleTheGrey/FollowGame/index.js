@@ -14,7 +14,7 @@ var canvas = document.getElementById('canvas'),
     //speed controls the level: easy:100, medium:50, hard:20
     speed = 50,
     //dimension control the difficulty too: easy:60, medium: 40, hard: 20
-    boxDims = 60,   //square box
+    boxDims = 20,   //square box
     //direction: 1 --> increment 0 --> decrement
     direction = {
         x: 1,
