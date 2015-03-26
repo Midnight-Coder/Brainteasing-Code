@@ -9,10 +9,6 @@ ul li{
     margin-bottom: 10px;
 }
 
-.canvas-container {
-    margin:auto;
-    background-color:#5F4C5C;
-}
 #canvas{
     border:1px solid #000000;
 }
@@ -39,10 +35,10 @@ footer{
     top: 45%;
     left: 40%;
     padding: 35px;
+    color: #DBDBC2;
     border: 1px solid #F7952D;
     background-color: #7C7373;
     z-index:1002;
-    overflow: auto;
     font-size: larger;
 }
 .btn{
@@ -53,7 +49,7 @@ footer{
     vertical-align: middle;
     border: 1px solid #cccccc;
     border-radius: 4px;
-    background-color: #0044cc;
+    background-color: #FFFFF0;
     opacity: 0.85;
     padding: 10px 10px;
     font-size: larger;

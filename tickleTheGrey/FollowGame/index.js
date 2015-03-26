@@ -32,7 +32,7 @@ function gameOver(){
     $light.show();
     $fade.show();
     $canvas.unbind('mousemove', handleMouseMovement);
-    draw(boxOffsetX, boxOffsetY, boxDims, 'red');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     isGameOn = false;
     console.log('game over');
 }
