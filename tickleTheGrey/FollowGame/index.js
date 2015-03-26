@@ -4,12 +4,23 @@ var canvas = document.getElementById('canvas'),
     canvasOffset = $canvas.offset(),
     offsetX = canvasOffset.left,
     offsetY = canvasOffset.top,
+
     //The jewel box
-    boxDims = 40,   //square box
+    //Start position of the box
     boxOffsetX = 10,
     boxOffsetY = 20,
     colorGrey = "#B7B6BA",
     colorGreen = '#6EB58C',
+    //speed controls the level: easy:100, medium:50, hard:20
+    speed = 50,
+    //dimension control the difficulty too: easy:60, medium: 40, hard: 20
+    boxDims = 60,   //square box
+    //direction: 1 --> increment 0 --> decrement
+    direction = {
+        x: 1,
+        y: 1
+    },
+
     //The game state
     $over = $('#tips'),
     $light = $('#light'),
@@ -20,12 +31,27 @@ var canvas = document.getElementById('canvas'),
 startGame();
 
 function randomMovement(){
-    var x = Math.floor(Math.random() * (2)) + boxOffsetX,
-        y = Math.floor(Math.random() * (2)) + boxOffsetX;
-
+    var x,y,
+        increment = 2;
     return interval = setInterval(function() {
+
+        if(boxOffsetX >= (canvas.width-boxDims)) {
+            direction['x'] = -1;
+        }
+        else if(boxOffsetX <=(3)){
+            direction['x'] = 1;
+        }
+        else if(boxOffsetY >= (canvas.height-boxDims)){
+            direction['y'] = -1;
+        }
+        else if(boxOffsetY <=(boxDims)){
+            direction['y'] = 1;
+        }
+        x = boxOffsetX + direction['x'];
+        y = boxOffsetY + direction['y'];
+
         draw(x, y, boxDims, colorGreen);
-    },1000);
+    }, speed);
 }
 function gameOver(){
     $over.text('Game Over');
@@ -34,7 +60,6 @@ function gameOver(){
     $canvas.unbind('mousemove', handleMouseMovement);
     ctx.clearRect(0,0,canvas.width,canvas.height);
     isGameOn = false;
-    console.log('game over');
 }
 function startGame(){
     $light.hide();
@@ -55,7 +80,6 @@ function handleMouseMovement(e){
         if(isOnBox(e.offsetX, e.offsetY)){
             draw(boxOffsetX, boxOffsetY, boxDims, colorGreen);
             isGameOn = true;
-            console.log('let it roll');
             $over.text('Don\'t let the box fly away');
             intervalID = randomMovement();
         }
