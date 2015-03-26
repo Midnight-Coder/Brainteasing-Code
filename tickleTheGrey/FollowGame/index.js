@@ -11,65 +11,58 @@ var canvas = document.getElementById('canvas'),
     colorGrey = "#B7B6BA",
     colorGreen = '#6EB58C',
     //The game state
-    $over = $('#over'),
-    isGameOn = false,
+    $over = $('#tips'),
     $light = $('#light'),
-    $fade = $('#fade');
+    $fade = $('#fade'),
+    isGameOn = false,
+    intervalID;
 
-
-//grey box to start with
 startGame();
 
-$canvas.mousemove(handleMouseMovement)
-
 function randomMovement(){
-    var x, y;
-    x = Math.floor(Math.random() * (2)) + boxOffsetX;
-    y = Math.floor(Math.random() * (2)) + boxOffsetX;
-    setInterval(function() {
+    var x = Math.floor(Math.random() * (2)) + boxOffsetX,
+        y = Math.floor(Math.random() * (2)) + boxOffsetX;
 
-        draw(boxOffsetX, boxOffsetY, boxDims, colorGreen);
+    return interval = setInterval(function() {
+        draw(x, y, boxDims, colorGreen);
     },1000);
 }
 function gameOver(){
     $over.text('Game Over');
     $light.show();
     $fade.show();
-
-    draw(boxOffsetX, boxOffsetY, boxDims, colorGrey);
+    $canvas.unbind('mousemove', handleMouseMovement);
+    draw(boxOffsetX, boxOffsetY, boxDims, 'red');
+    isGameOn = false;
     console.log('game over');
 }
 function startGame(){
-    console.log('starting')
     $light.hide();
     $fade.hide();
     $over.text('Move mouse on the box');
-    isGameOn = false;
     boxOffsetX = 10;
     boxOffsetY = 20;
+    //grey box to start with
     draw(boxOffsetX, boxOffsetY, boxDims, colorGrey);
+    $canvas.mousemove(handleMouseMovement);
 }
 
 function handleMouseMovement(e){
     e.preventDefault();
     e.stopPropagation();
-    window.s = e;
-    mouseX = e.offsetX;
-    mouseY = e.offsetY;
 
     if(!isGameOn){
-        if(isOnBox(mouseX, mouseY)){
+        if(isOnBox(e.offsetX, e.offsetY)){
             draw(boxOffsetX, boxOffsetY, boxDims, colorGreen);
             isGameOn = true;
             console.log('let it roll');
-            $over.text('Score:' + Math.random()*100);
+            $over.text('Don\'t let the box fly away');
+            intervalID = randomMovement();
         }
     }
-    else if(!isOnBox(mouseX, mouseY)){
+    else if(!isOnBox(e.offsetX, e.offsetY)){
+        clearInterval(intervalID);
         gameOver();
-    }
-    else {
-        randomMovement();
     }
 }
 
